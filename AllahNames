@@ -1,0 +1,196 @@
+package com.example;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static java.util.stream.Collectors.toList;
+
+class SumCombinations {
+    static void print(List<List<WeightedNames>> arr) {
+        for (int i = 0; i < arr.size(); i++) {
+            out.print("[ ");
+            for (int j = 0; j < arr.get(i).size(); j++) {
+                out.print(arr.get(i).get(j).getName() + "[" + arr.get(i).get(j).getWeight() + "] ");
+            }
+            out.println("]");
+        }
+
+        /*out.println("####");
+        arr.parallelStream().forEach(weightedNames -> {
+            out.println(weightedNames.parallelStream().collect(groupingBy(WeightedNames::getName, counting())));
+        });*/
+    }
+
+
+    static void printAllSumRec(int target, int currentSum, int start, List<Integer> maxLIst,
+                               List<List<WeightedNames>> output, List<WeightedNames> result,
+                               List<WeightedNames> names) {
+        if (target == currentSum) {
+            LinkedList<WeightedNames> collect = result.stream().sorted(Comparator.comparing(WeightedNames::getName))
+                                                      .collect(Collectors.toCollection(LinkedList::new));
+            boolean alreadyInOutput = output.parallelStream()
+                                            .anyMatch(weightedNames -> Objects.deepEquals(weightedNames, collect));
+            if (!alreadyInOutput) {
+                // out.println("adding result: " + collect.stream().map(WeightedNames::getName).collect(Collectors
+                // .toList()));
+                output.add(collect);
+            }
+        }
+
+        for (int i : maxLIst) {
+            int tempSum = currentSum + i;
+
+            if (tempSum <= target) {
+                Optional<WeightedNames> name = findName(names, i);
+                if (!name.isPresent()) {
+                    err.println("############################    : " + i);
+                }
+                int finalI = i;
+                name.ifPresent(item -> {
+                    /*out.println("target: " + target + "\t\t  i: " + i + "\t\t currentSum: " + currentSum + "\t" +
+                            "\tstart: " + start + "\ttempSum: " + tempSum + "\t\t name: " + item
+                            .getName());*/
+
+                    result.add(item);
+                    printAllSumRec(target, tempSum, finalI, maxLIst, output, result, names);
+                    result.remove(result.size() - 1);
+                });
+            } else {
+                return;
+            }
+        }
+    }
+
+    private static Optional<WeightedNames> findName(List<WeightedNames> names, int i) {
+        return names.stream().filter(weightedNames -> weightedNames.getWeight() == i).findFirst();
+    }
+
+    static List<List<WeightedNames>> printAllSum(List<WeightedNames> names, int target) {
+        List<List<WeightedNames>> output = new LinkedList<>();
+        List<WeightedNames> result = new LinkedList<>();
+
+        int min = sortedWeight(names).get(0);
+        out.println("min = " + min);
+        List<Integer> maxLIst = sortedWeight(names).stream().filter(integer -> integer <= target).collect(toList());
+        out.println("maxLIst = " + maxLIst);
+
+        printAllSumRec(target, 0, min, maxLIst, output, result, names);
+
+        return output;
+    }
+
+    public static void main(String[] args) {
+        List<WeightedNames> names = getNames();
+        err.println(names.size());
+        logNamesByWeight(names);
+        err.println(sortedWeight(names));
+
+        int n = 50;
+        List<List<WeightedNames>> result = printAllSum(names, n);
+        List<List<WeightedNames>> collect = result.parallelStream().filter(weightedNames -> weightedNames.size() == 2)
+                                                  .collect(toList());
+
+        // print(result);
+        print(collect);
+        err.println("done");
+    }
+
+    private static void logNamesByWeight(List<WeightedNames> names) {
+        Map<Integer, List<WeightedNames>> collect = names.parallelStream()
+                                                         .collect(Collectors.groupingBy(WeightedNames::getWeight));
+        collect.keySet().stream().sorted().map(collect::get).forEach(weightedNames -> err
+                .println("weight: " + weightedNames.get(0).getWeight() + "\t\t names: " + weightedNames.stream()
+                                                                                                       .map(WeightedNames::getName)
+                                                                                                       .sorted()
+                                                                                                       .collect(toList())));
+    }
+
+    private static List<Integer> sortedWeight(List<WeightedNames> weightedNames) {
+        return weightedNames.parallelStream().map(WeightedNames::getWeight).sorted().collect(toList());
+    }
+
+    private static List<WeightedNames> sortedByWeight(List<WeightedNames> weightedNames) {
+        return weightedNames.stream().sorted(Comparator.comparing(WeightedNames::getWeight)).collect(toList());
+    }
+
+    public static List<WeightedNames> getNames() {
+        return new ArrayList<>(Arrays.asList(
+
+                // formatter:off
+                // new WeightedNames("", ),
+                new WeightedNames("ALLAH", 66), new WeightedNames("Rahman", 298), new WeightedNames("Raheem", 258),
+                new WeightedNames("Malik", 90), new WeightedNames("Quddus", 170), new WeightedNames("Salam", 131),
+                new WeightedNames("Mu’min", 136), new WeightedNames("Muhaymin", 145), new WeightedNames("Aziz", 94),
+                new WeightedNames("Jabbar", 206), new WeightedNames("Mutakabbir", 662), new WeightedNames("Khaaliq",
+                        731), new WeightedNames("Baari", 213), new WeightedNames("Musawwir", 336), new WeightedNames(
+                                "Ghaffaar", 1281), new WeightedNames("Qahhaar", 306), new WeightedNames("Wahhab", 14)
+                , new WeightedNames("Razzaq", 308), new WeightedNames("Fattah", 489), new WeightedNames("Alim", 450),
+                new WeightedNames("Qaabiz", 903), new WeightedNames("Baasit", 72), new WeightedNames("Rafi", 351),
+                new WeightedNames("Khaafid", 1481), new WeightedNames("Mu’izz", 117), new WeightedNames("Muzil", 770)
+                , new WeightedNames("Sami", 180), new WeightedNames("Baseer", 302), new WeightedNames("Hakam", 68),
+                new WeightedNames("Adl", 104), new WeightedNames("Lateef", 129), new WeightedNames("Khabeer", 812),
+                new WeightedNames("Haleem", 88), new WeightedNames("Azeem", 1020), new WeightedNames("Ghafoor", 1286)
+                , new WeightedNames("Shakoor", 526), new WeightedNames("Aliyy", 110), new WeightedNames("Kabeer",
+                        232), new WeightedNames("Hafiz", 998), new WeightedNames("Muqeet", 550), new WeightedNames(
+                                "Haseeb", 80), new WeightedNames("Jaleel", 73), new WeightedNames("Kareem", 270),
+                new WeightedNames("Raqeeb", 312), new WeightedNames("Mujeeb", 55), new WeightedNames("Waasi", 137),
+                new WeightedNames("Hakeem", 68), new WeightedNames("Wadud", 20), new WeightedNames("Majeed", 57),
+                new WeightedNames("Ba’ith", 573), new WeightedNames("Shaheed", 319), new WeightedNames("Haqq", 108),
+                new WeightedNames("Qawwiyy", 116), new WeightedNames("Wakeel", 66), new WeightedNames("Mateen", 500),
+                new WeightedNames("Waliyy", 46), new WeightedNames("Hameed", 62), new WeightedNames("Muhsee", 148),
+                new WeightedNames("Mubdi", 56), new WeightedNames("Mueed", 124), new WeightedNames("Muhyi", 68),
+                new WeightedNames("Mumeet", 490), new WeightedNames("Hayy", 18), new WeightedNames("Qayyoom", 156),
+                new WeightedNames("Waajid", 14), new WeightedNames("Maajid", 48), new WeightedNames("Waahid", 19),
+                new WeightedNames("Ahad", 13), new WeightedNames("Samad", 134), new WeightedNames("Qaadir", 305),
+                new WeightedNames("Muqtadir", 744), new WeightedNames("Muqaddim", 184), new WeightedNames("Mu’akhkhir"
+                        , 846), new WeightedNames("Awwal", 37), new WeightedNames("Akhir", 801), new WeightedNames(
+                                "Zaahir", 1106), new WeightedNames("Baatin", 62), new WeightedNames("Muta’ali", 541),
+                new WeightedNames("Barr", 202), new WeightedNames("Tawwaab", 409), new WeightedNames("Muntaqim", 430)
+                , new WeightedNames("MunarIm", 200), new WeightedNames("Afuww", 156), new WeightedNames("Ra’oof",
+                        286), new WeightedNames("Maalik-ul-Mulk", 212), new WeightedNames("Zul-Jalaali", 801),
+                new WeightedNames("wal-Ikram", 299), new WeightedNames("rabb", 202),
+
+                new WeightedNames("Muqsit", 209), new WeightedNames("Jaami", 114), new WeightedNames("Ghaniyy", 1060)
+                , new WeightedNames("Mughni", 1100), new WeightedNames("Muti", 129), new WeightedNames("Maani", 161),
+                new WeightedNames("Zaarr", 1001), new WeightedNames("Naafi", 201), new WeightedNames("Noor", 256),
+                new WeightedNames("Haadi", 20), new WeightedNames("Badi", 86), new WeightedNames("Baaqi", 113),
+                new WeightedNames("Waaris", 707), new WeightedNames("Rasheed", 614), new WeightedNames("Saboor", 298)
+                , new WeightedNames("dayyano", 65), new WeightedNames("akbar", 323), new WeightedNames("waafey", 155)
+                , new WeightedNames("daleelu", 74), new WeightedNames("daaemu", 45), new WeightedNames("saafiyo",
+                        391), new WeightedNames("haleemo", 88), new WeightedNames("hannanu", 109), new WeightedNames(
+                                "mannaanu", 141), new WeightedNames("sariU", 340), new WeightedNames("huwa", 11),
+                new WeightedNames("subbuhU", 76), new WeightedNames("haafizu", 989), new WeightedNames("sattar", 661)
+                , new WeightedNames("maaneU", 161), new WeightedNames("musabbihul-asbaab", 201), new WeightedNames(
+                        "ahkamul-haakimin", 239), new WeightedNames("muhatsibu", 512), new WeightedNames("qaafi",
+                        111), new WeightedNames("waafiyu", 97), new WeightedNames("aadilu", 105), new WeightedNames(
+                                "haakeemu", 178), new WeightedNames("saabit", 903), new WeightedNames("zakkiyu", 37),
+                new WeightedNames("mubeen", 102), new WeightedNames("yaseenu", 130), new WeightedNames("yaseen", 70),
+                new WeightedNames("kadeeru", 314), new WeightedNames("mehmoodu", 114), new WeightedNames("sidqu",
+                        120), new WeightedNames("naqiyyu", 98), new WeightedNames("takiyyu", 141), new WeightedNames(
+                                "qaaemu", 141), new WeightedNames("ilaah", 36), new WeightedNames("makhfee", 830),
+                new WeightedNames("burhaanu", 298), new WeightedNames("sultanu", 150), new WeightedNames("s_l_mU",
+                        130), new WeightedNames("shaahidu", 310), new WeightedNames("kabeeru", 232),
+                new WeightedNames("maaliku", 91), new WeightedNames("maliku", 100), new WeightedNames("haakimu", 69),
+                new WeightedNames("aalimu", 141), new WeightedNames("aalaa", 111), new WeightedNames("waheedu", 30),
+                new WeightedNames("murEezu", 127), new WeightedNames("moinu", 170), new WeightedNames("mustabinu",
+                        562), new WeightedNames("haamidu", 53), new WeightedNames("subhaanu", 120)
+                // formatter:on
+        ));
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    public static class WeightedNames {
+        private String name;
+        private int weight;
+    }
+}
